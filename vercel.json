@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/(api|evo-api)/:path*",
-      "destination": "/api/:path*"
+      "source": "/evo-api/:path*",
+      "destination": "https://test-evolution-api.pzkz6e.easypanel.host/:path*"
+    },
+    {
+      "source": "/ovc-api/:path*",
+      "destination": "https://ovc.catastro.meh.es/:path*"
     },
     {
       "source": "/(.*)",
