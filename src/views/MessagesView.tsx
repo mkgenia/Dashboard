@@ -231,7 +231,15 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
                     position: 'relative'
                   }}
                 >
-                  <img src={chat.profilePicUrl || `https://avatar.vercel.sh/${chat.remoteJid}`} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
+                  <img 
+                    src={chat.profilePicUrl || `https://avatar.vercel.sh/${chat.remoteJid}`} 
+                    alt="" 
+                    style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.src = `https://avatar.vercel.sh/${chat.remoteJid}`;
+                    }}
+                  />
                   <div style={{ flex: 1, overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{chat.name || chat.pushName || 'Desconocido'}</span>
@@ -267,7 +275,14 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
           <>
             <header style={{ padding: '24px 40px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <img src={selectedChat?.profilePicUrl || `https://avatar.vercel.sh/${selectedChatId}`} style={{ width: 44, height: 44, borderRadius: '50%' }} />
+                <img 
+                  src={selectedChat?.profilePicUrl || `https://avatar.vercel.sh/${selectedChatId}`} 
+                  style={{ width: 44, height: 44, borderRadius: '50%' }} 
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.src = `https://avatar.vercel.sh/${selectedChatId}`;
+                  }}
+                />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{selectedChat?.name || selectedChat?.pushName || 'Desconocido'}</div>
                   <div style={{ fontSize: '0.8rem', color: '#25D366', fontWeight: 700 }}>● En línea</div>
