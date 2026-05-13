@@ -320,6 +320,8 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
           <div className="search-pill" style={{ width: '100%', maxWidth: 'none' }}>
             <Search size={22} color="var(--text-secondary)" />
             <input
+              id="lead-search"
+              name="lead-search"
               type="text"
               placeholder="Buscar por nombre, email, teléfono..."
               value={searchTerm}
@@ -577,6 +579,9 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase' }}>Teléfono</div>
                     {isEditing ? (
                       <input
+                        id="lead-telefono"
+                        name="telefono"
+                        type="tel"
                         className="search-pill"
                         style={{ width: '100%', background: 'white', border: '1px solid #ddd' }}
                         value={editingLead?.telefono || ''}
@@ -593,6 +598,9 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase' }}>Email</div>
                     {isEditing ? (
                       <input
+                        id="lead-email"
+                        name="email"
+                        type="email"
                         className="search-pill"
                         style={{ width: '100%', background: 'white', border: '1px solid #ddd' }}
                         value={editingLead?.email || ''}

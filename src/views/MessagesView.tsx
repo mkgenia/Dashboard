@@ -205,7 +205,14 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
           </div>
           <div className="search-pill" style={{ width: '100%' }}>
             <Search size={20} color="var(--text-secondary)" />
-            <input type="text" placeholder="Buscar chat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <input 
+              id="chat-search"
+              name="chat-search"
+              type="text" 
+              placeholder="Buscar chat..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
           </div>
         </div>
 
@@ -331,6 +338,8 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
               <Paperclip size={24} color="var(--text-secondary)" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer' }} />
               <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
               <input
+                id="message-input"
+                name="message"
                 type="text"
                 placeholder="Escribe un mensaje..."
                 value={newMessage}

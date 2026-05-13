@@ -364,6 +364,8 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
                   }}>
                     <Globe size={24} color="var(--text-secondary)" />
                     <input
+                      id="scraper-zone-name"
+                      name="zone-name"
                       type="text"
                       placeholder="Ej: Chamberí, Madrid..."
                       value={searchName}

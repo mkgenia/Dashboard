@@ -458,7 +458,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                   <div style={grid3}>
                     <div style={{ gridColumn: 'span 2' }}>
                       <label style={labelStyle}>Lead Vinculado</label>
-                      <select style={inputStyle(errors.propietario_id)} {...register('propietario_id')}>
+                      <select id="propietario-select" style={inputStyle(errors.propietario_id)} {...register('propietario_id')}>
                         <option value="">-- Seleccionar Titular --</option>
                         {potentialOwners.map(lead => (
                           <option key={lead.id} value={lead.id}>
@@ -478,20 +478,20 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
 
                 <div style={grid4}>
                   <div><label style={labelStyle}>Operación</label>
-                    <select style={inputStyle()} {...register('tipo_operacion')}>
+                    <select id="tipo-operacion" style={inputStyle()} {...register('tipo_operacion')}>
                       <option value="venta">Venta</option><option value="alquiler">Alquiler</option>
                       <option value="venta_alquiler">Venta/Alq</option><option value="traspaso">Traspaso</option>
                     </select>
                   </div>
                   <div><label style={labelStyle}>Estado</label>
-                    <select style={inputStyle()} {...register('estado_venta')}>
+                    <select id="estado-venta" style={inputStyle()} {...register('estado_venta')}>
                       <option value="disponible">Disponible</option><option value="reservado">Reservado</option>
                       <option value="vendido">Vendido</option><option value="alquilado">Alquilado</option>
                     </select>
                   </div>
                   <div style={{ gridColumn: 'span 2' }}>
                     <label style={labelStyle}>Título Comercial</label>
-                    <input style={inputStyle(errors.titulo)} {...register('titulo')} placeholder="Ej: Precioso ático con vistas al cauce" />
+                    <input id="property-title" style={inputStyle(errors.titulo)} {...register('titulo')} placeholder="Ej: Precioso ático con vistas al cauce" />
                   </div>
                 </div>
 
@@ -501,6 +501,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                     <div style={{ position: 'relative' }}>
                       <label style={labelStyle}>Calle</label>
                       <input
+                        id="property-street"
                         style={inputStyle(errors.calle)}
                         {...register('calle')}
                         onFocus={() => streetValue?.length > 2 && setShowSuggestions(true)}
@@ -562,6 +563,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                       <label style={labelStyle}>Núm.</label>
                       {catastroNumbers.length > 0 ? (
                         <select
+                          id="property-number-select"
                           style={inputStyle(errors.numero)}
                           {...register('numero')}
                         >
@@ -570,6 +572,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                         </select>
                       ) : (
                         <input
+                          id="property-number-input"
                           style={inputStyle(errors.numero)}
                           {...register('numero')}
                           placeholder="Ej: 25"
@@ -578,11 +581,11 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={labelStyle}>Barrio</label>
-                      <input style={inputStyle()} {...register('barrio')} placeholder="Opcional" />
+                      <input id="property-barrio" style={inputStyle()} {...register('barrio')} placeholder="Opcional" />
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={labelStyle}>Ciudad</label>
-                      <input style={inputStyle(errors.ciudad)} {...register('ciudad')} placeholder="Valencia" />
+                      <input id="property-city" style={inputStyle(errors.ciudad)} {...register('ciudad')} placeholder="Valencia" />
                     </div>
                   </div>
 
@@ -607,6 +610,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                         <div>
                           <label style={labelStyle}>Escalera</label>
                           <select
+                            id="catastro-esc"
                             style={inputStyle()}
                             value={selEsc}
                             onChange={(e) => { setSelEsc(e.target.value); setSelPla(''); }}
@@ -618,6 +622,7 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                         <div>
                           <label style={labelStyle}>Planta</label>
                           <select
+                            id="catastro-pla"
                             style={inputStyle()}
                             value={selPla}
                             onChange={(e) => setSelPla(e.target.value)}
@@ -664,9 +669,9 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
             {activeTab === 'economico' && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={grid3}>
-                  <div><label style={labelStyle}>Precio Venta (€)</label><input style={inputStyle(errors.precio)} type="number" {...register('precio', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Precio Alquiler</label><input style={inputStyle()} type="number" {...register('precio_alquiler', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Gastos Comunidad</label><input style={inputStyle()} type="number" {...register('gastos_comunidad', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Precio Venta (€)</label><input id="property-price" style={inputStyle(errors.precio)} type="number" {...register('precio', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Precio Alquiler</label><input id="property-rent" style={inputStyle()} type="number" {...register('precio_alquiler', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Gastos Comunidad</label><input id="property-community" style={inputStyle()} type="number" {...register('gastos_comunidad', { valueAsNumber: true })} /></div>
                 </div>
 
                 <div style={{ ...sectionStyle, background: '#f0fdf4', border: '1px solid #bcf0da' }}>
@@ -674,9 +679,9 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                     <Euro size={16} /> HONORARIOS Y COMISIONES
                   </h4>
                   <div style={grid3}>
-                    <div><label style={labelStyle}>Comisión (%)</label><input style={inputStyle()} type="number" step="0.1" {...register('honorarios_porcentaje', { valueAsNumber: true })} /></div>
-                    <div><label style={labelStyle}>Honorarios Fijos (€)</label><input style={inputStyle()} type="number" {...register('honorarios_fijo', { valueAsNumber: true })} /></div>
-                    <div><label style={labelStyle}>IBI Anual</label><input style={inputStyle()} type="number" {...register('ibi', { valueAsNumber: true })} /></div>
+                    <div><label style={labelStyle}>Comisión (%)</label><input id="property-commission" style={inputStyle()} type="number" step="0.1" {...register('honorarios_porcentaje', { valueAsNumber: true })} /></div>
+                    <div><label style={labelStyle}>Honorarios Fijos (€)</label><input id="property-fees" style={inputStyle()} type="number" {...register('honorarios_fijo', { valueAsNumber: true })} /></div>
+                    <div><label style={labelStyle}>IBI Anual</label><input id="property-ibi" style={inputStyle()} type="number" {...register('ibi', { valueAsNumber: true })} /></div>
                   </div>
                 </div>
               </motion.div>
@@ -685,21 +690,21 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
             {activeTab === 'tecnico' && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={grid4}>
-                  <div><label style={labelStyle}>Metros Const.</label><input style={inputStyle(errors.metros_construidos)} type="number" {...register('metros_construidos', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Metros Útiles</label><input style={inputStyle()} type="number" {...register('metros_utiles', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Habitaciones</label><input style={inputStyle()} type="number" {...register('habitaciones_dobles', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Baños</label><input style={inputStyle(errors.banos)} type="number" {...register('banos', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Metros Const.</label><input id="property-sqm-const" style={inputStyle(errors.metros_construidos)} type="number" {...register('metros_construidos', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Metros Útiles</label><input id="property-sqm-usable" style={inputStyle()} type="number" {...register('metros_utiles', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Habitaciones</label><input id="property-rooms" style={inputStyle()} type="number" {...register('habitaciones_dobles', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Baños</label><input id="property-bathrooms" style={inputStyle(errors.banos)} type="number" {...register('banos', { valueAsNumber: true })} /></div>
                 </div>
                 <div style={grid4}>
                   <div><label style={labelStyle}>Orientación</label>
-                    <select style={inputStyle()} {...register('orientacion')}>
+                    <select id="property-orientation" style={inputStyle()} {...register('orientacion')}>
                       <option value="">No definida</option>
                       {['Norte', 'Sur', 'Este', 'Oeste', 'Noreste', 'Sureste', 'Noroeste', 'Suroeste'].map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
-                  <div><label style={labelStyle}>Año Const.</label><input style={inputStyle()} type="number" {...register('ano_construccion', { valueAsNumber: true })} /></div>
-                  <div><label style={labelStyle}>Planta / Altura</label><input style={inputStyle()} {...register('piso')} placeholder="Ej: 4ª Exterior" /></div>
-                  <div><label style={labelStyle}>Metros Parcela</label><input style={inputStyle()} type="number" {...register('metros_parcela', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Año Const.</label><input id="property-year" style={inputStyle()} type="number" {...register('ano_construccion', { valueAsNumber: true })} /></div>
+                  <div><label style={labelStyle}>Planta / Altura</label><input id="property-floor" style={inputStyle()} {...register('piso')} placeholder="Ej: 4ª Exterior" /></div>
+                  <div><label style={labelStyle}>Metros Parcela</label><input id="property-plot" style={inputStyle()} type="number" {...register('metros_parcela', { valueAsNumber: true })} /></div>
                 </div>
               </motion.div>
             )}
@@ -736,19 +741,19 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ initialData, onCl
                 <div style={grid3}>
                   <div>
                     <label style={labelStyle}>Letra Consumo</label>
-                    <select style={inputStyle()} {...register('consumo_energetico_letra')}>
+                    <select id="property-energy-cons" style={inputStyle()} {...register('consumo_energetico_letra')}>
                       {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'EXENTO', 'TRAMITE'].map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div>
                     <label style={labelStyle}>Letra Emisiones</label>
-                    <select style={inputStyle()} {...register('emisiones_letra')}>
+                    <select id="property-energy-emissions" style={inputStyle()} {...register('emisiones_letra')}>
                       {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'EXENTO', 'TRAMITE'].map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div>
                     <label style={labelStyle}>Estado Exclusiva</label>
-                    <select style={inputStyle()} {...register('exclusiva')}>
+                    <select id="property-exclusive" style={inputStyle()} {...register('exclusiva')}>
                       <option value="false">Sin Exclusiva</option>
                       <option value="true">En Exclusiva</option>
                     </select>

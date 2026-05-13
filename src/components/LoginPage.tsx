@@ -57,11 +57,14 @@ const LoginPage = () => {
                     <div style={{ position: 'relative' }}>
                         <Mail style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: '#888' }} size={20} />
                         <input
+                            id="identifier"
+                            name="identifier"
                             type="text"
                             placeholder="Usuario o Email corporativo"
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
                             required
+                            autoComplete="username"
                             style={{
                                 width: '100%',
                                 padding: '18px 20px 18px 54px',
@@ -81,11 +84,14 @@ const LoginPage = () => {
                     <div style={{ position: 'relative' }}>
                         <Lock style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: '#888' }} size={20} />
                         <input
+                            id="password"
+                            name="password"
                             type="password"
                             placeholder="Contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete="current-password"
                             style={{
                                 width: '100%',
                                 padding: '18px 20px 18px 54px',

@@ -290,7 +290,14 @@ const UserManagementView: React.FC = () => {
         <div style={{ padding: '30px 40px' }}>
           <div className="search-pill" style={{ maxWidth: 500 }}>
             <Search size={22} color="var(--text-secondary)" />
-            <input type="text" placeholder="Buscar por nombre o email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <input 
+              id="user-search"
+              name="user-search"
+              type="text" 
+              placeholder="Buscar por nombre o email..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
           </div>
         </div>
 
@@ -373,15 +380,16 @@ const UserManagementView: React.FC = () => {
               <form onSubmit={handleSaveUser} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-                  <InputLabel label="Nombre" value={currentUserData.nombre} onChange={(v) => editingUser ? setEditingUser({...editingUser, nombre: v}) : setNewUser({ ...newUser, nombre: v })} placeholder="Nombre" autoComplete="given-name" />
-                  <InputLabel label="Apellidos" value={currentUserData.apellidos} onChange={(v) => editingUser ? setEditingUser({...editingUser, apellidos: v}) : setNewUser({ ...newUser, apellidos: v })} placeholder="Apellidos" autoComplete="family-name" />
+                  <InputLabel id="nombre" label="Nombre" value={currentUserData.nombre} onChange={(v) => editingUser ? setEditingUser({...editingUser, nombre: v}) : setNewUser({ ...newUser, nombre: v })} placeholder="Nombre" autoComplete="given-name" />
+                  <InputLabel id="apellidos" label="Apellidos" value={currentUserData.apellidos} onChange={(v) => editingUser ? setEditingUser({...editingUser, apellidos: v}) : setNewUser({ ...newUser, apellidos: v })} placeholder="Apellidos" autoComplete="family-name" />
                 </div>
-                <InputLabel label="Email Corporativo" value={currentUserData.email} onChange={(v) => editingUser ? setEditingUser({...editingUser, email: v}) : setNewUser({ ...newUser, email: v })} placeholder="ejemplo@grupohogares.com" autoComplete="email" />
+                <InputLabel id="email" label="Email Corporativo" value={currentUserData.email} onChange={(v) => editingUser ? setEditingUser({...editingUser, email: v}) : setNewUser({ ...newUser, email: v })} placeholder="ejemplo@grupohogares.com" autoComplete="email" />
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-                  <InputLabel label="Usuario" value={currentUserData.usuario || ''} onChange={(v) => editingUser ? setEditingUser({...editingUser, usuario: v}) : setNewUser({ ...newUser, usuario: v })} placeholder="usuario123" autoComplete="username" />
+                  <InputLabel id="usuario" label="Usuario" value={currentUserData.usuario || ''} onChange={(v) => editingUser ? setEditingUser({...editingUser, usuario: v}) : setNewUser({ ...newUser, usuario: v })} placeholder="usuario123" autoComplete="username" />
                   {!editingUser && (
                     <InputLabel
+                      id="password"
                       label="Contraseña"
                       type={showPassword ? 'text' : 'password'}
                       value={newUser.password || ''}
@@ -399,9 +407,9 @@ const UserManagementView: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 15 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Prefijo</label>
+                    <label htmlFor="prefijo" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Prefijo</label>
                     <div className="search-pill" style={{ width: '100%', padding: '0 15px', position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <select value={currentUserData.prefijo} onChange={e => editingUser ? setEditingUser({...editingUser, prefijo: e.target.value}) : setNewUser({ ...newUser, prefijo: e.target.value })} style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', height: '100%', padding: '15px 0', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', appearance: 'none', cursor: 'pointer' }}>
+                      <select id="prefijo" name="prefijo" value={currentUserData.prefijo} onChange={e => editingUser ? setEditingUser({...editingUser, prefijo: e.target.value}) : setNewUser({ ...newUser, prefijo: e.target.value })} style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', height: '100%', padding: '15px 0', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', appearance: 'none', cursor: 'pointer' }}>
                         <option value="+34">🇪🇸 +34</option>
                         <option value="+1">🇺🇸 +1</option>
                         <option value="+44">🇬🇧 +44</option>
@@ -412,7 +420,7 @@ const UserManagementView: React.FC = () => {
                       <ChevronDown size={14} style={{ position: 'absolute', right: 10, color: 'var(--text-secondary)', pointerEvents: 'none' }} />
                     </div>
                   </div>
-                  <InputLabel label="Teléfono" value={currentUserData.telefono || ''} onChange={(v) => editingUser ? setEditingUser({...editingUser, telefono: v}) : setNewUser({ ...newUser, telefono: v })} placeholder="600 000 000" type="tel" />
+                  <InputLabel id="telefono" label="Teléfono" value={currentUserData.telefono || ''} onChange={(v) => editingUser ? setEditingUser({...editingUser, telefono: v}) : setNewUser({ ...newUser, telefono: v })} placeholder="600 000 000" type="tel" />
                 </div>
 
                 {/* Rol */}
@@ -489,13 +497,15 @@ const UserManagementView: React.FC = () => {
 interface InputLabelProps {
   label: string; value: string; onChange: (v: string) => void;
   placeholder: string; type?: string; rightElement?: React.ReactNode;
-  autoComplete?: string;
+  autoComplete?: string; id?: string; name?: string;
 }
-const InputLabel = ({ label, value, onChange, placeholder, type = 'text', rightElement, autoComplete }: InputLabelProps) => (
+const InputLabel = ({ label, value, onChange, placeholder, type = 'text', rightElement, autoComplete, id, name }: InputLabelProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-    <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{label}</label>
+    <label htmlFor={id} style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{label}</label>
     <div className="search-pill" style={{ width: '100%', position: 'relative', display: 'flex', alignItems: 'center' }}>
       <input 
+        id={id}
+        name={name || id}
         type={type} 
         placeholder={placeholder} 
         value={value} 

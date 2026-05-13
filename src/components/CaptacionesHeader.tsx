@@ -30,6 +30,8 @@ const CaptacionesHeader: React.FC<CaptacionesHeaderProps> = ({
         <div className="search-pill" style={{ flex: 1, maxWidth: 450 }}>
           <Search size={22} color="var(--text-secondary)" />
           <input
+            id="captacion-search"
+            name="captacion-search"
             type="text"
             placeholder="Buscar por zona, calle o propietario..."
             value={searchTerm}
