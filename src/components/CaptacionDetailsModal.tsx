@@ -576,6 +576,12 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
                         const success = await evolutionService.sendMessage(jid, text);
 
                         if (success) {
+                          // Actualizar estado en Supabase para que conste como contactado
+                          await supabase
+                            .from('captaciones')
+                            .update({ estado: 'Contactado' })
+                            .eq('id', selectedCaptacion.id);
+
                           showNotification(`Mensaje enviado con éxito a ${selectedCaptacion.calle}`, 'success');
                           setShowContactConfirm(false);
                           setAiMessage('');

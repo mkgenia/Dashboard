@@ -11,6 +11,7 @@ import CaptacionDetailsModal from '../components/CaptacionDetailsModal';
 import { useApp } from '../contexts/AppContext';
 import Skeleton from '../components/Skeleton';
 import { useAuth } from '../contexts/AuthContext';
+import { evolutionService } from '../services/evolutionService';
 
 interface CaptacionesViewProps {
   // Props removed in favor of useApp
@@ -26,6 +27,62 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
   const [filterType, setFilterType] = useState<'all' | 'worked' | 'responded' | 'not_worked'>('all');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [chatMetadata, setChatMetadata] = useState<Record<string, { worked: boolean, responded: boolean, conversation: boolean, lastTs?: number }>>({});
+
+  // Analizar secuencia de mensajes para determinar estados complejos (Optimizado con paralelo)
+  useEffect(() => {
+    const analyzeChats = async () => {
+      if (chats.length === 0) return;
+      
+      const newMetadata = { ...chatMetadata };
+      let hasUpdates = false;
+
+      // Filtrar chats que realmente necesitan análisis
+      const chatsToAnalyze = chats.filter(chat => {
+        const jid = chat.remoteJid;
+        const lastTs = chat.lastMessage?.messageTimestamp;
+        return !newMetadata[jid] || newMetadata[jid].lastTs !== lastTs;
+      });
+
+      if (chatsToAnalyze.length === 0) return;
+
+      // Procesar en lotes paralelos para máxima velocidad
+      const batchSize = 6;
+      for (let i = 0; i < chatsToAnalyze.length; i += batchSize) {
+        const batch = chatsToAnalyze.slice(i, i + batchSize);
+        
+        await Promise.all(batch.map(async (chat) => {
+          const jid = chat.remoteJid;
+          try {
+            const msgs = await evolutionService.getMessages(jid);
+            if (msgs && msgs.length > 0) {
+              const isWorked = msgs[0].key?.fromMe === true;
+              const isResponded = isWorked && msgs.length >= 2 && msgs[1].key?.fromMe === false;
+              const isConversation = msgs.length > 2;
+
+              newMetadata[jid] = {
+                worked: isWorked,
+                responded: isResponded,
+                conversation: isConversation,
+                lastTs: chat.lastMessage?.messageTimestamp
+              };
+              hasUpdates = true;
+            }
+          } catch (err) {
+            console.error('Error analyzing chat:', jid, err);
+          }
+        }));
+
+        // Actualizar parcialmente para mostrar progreso en la UI
+        if (hasUpdates) {
+          setChatMetadata({ ...newMetadata });
+          hasUpdates = false; 
+        }
+      }
+    };
+
+    analyzeChats();
+  }, [chats]);
 
   // Efecto para abrir captación inicial desde navegación externa
   useEffect(() => {
@@ -52,28 +109,27 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
 
     if (!matchesSearch) return false;
 
-    const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
-    
-    if (filterType === 'worked') return hasLead;
-    if (filterType === 'not_worked') return !hasLead;
-    if (filterType === 'responded') {
-      const capPhone = normalizePhone(c.telefono);
-      if (!capPhone) return false;
-
-      const chat = (chats || []).find(chat => {
-        const jids = (chat.remoteJid || '').split(',');
-        return jids.some(j => {
-          const num = j.split('@')[0];
-          return normalizePhone(num) === capPhone;
-        });
+    const capPhone = normalizePhone(c.telefono);
+    const chat = capPhone ? (chats || []).find(chat => {
+      const jids = (chat.remoteJid || '').split(',');
+      return jids.some(j => {
+        const num = j.split('@')[0];
+        return normalizePhone(num) === capPhone;
       });
+    }) : null;
 
-      // Es respuesta si: hay un chat Y (el último mensaje no es nuestro O hay mensajes sin leer)
-      return !!chat && (
-        chat.lastMessage?.key?.fromMe === false || 
-        (chat.unreadCount !== undefined && chat.unreadCount > 0)
-      );
-    }
+    const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
+    const hasChat = !!chat;
+    const metadata = chat ? chatMetadata[chat.remoteJid] : null;
+
+    // Lógica secuencial: Trabajada (1er msg), Respuesta (2do msg), Conversación (3+ msgs)
+    const isWorked = hasLead || metadata?.worked || hasChat;
+    const isResponded = metadata?.responded || (hasChat && chat.lastMessage?.key?.fromMe === false);
+    const isConversation = metadata?.conversation;
+
+    if (filterType === 'worked') return isWorked;
+    if (filterType === 'not_worked') return !isWorked;
+    if (filterType === 'responded') return isResponded;
 
     return true;
   });
@@ -165,20 +221,20 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
             }}>
               {captaciones.filter(c => {
                 const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
-                if (f.id === 'worked') return hasLead;
-                if (f.id === 'not_worked') return !hasLead;
-                if (f.id === 'responded') {
-                  const capPhone = normalizePhone(c.telefono);
-                  if (!capPhone) return false;
-                  const chat = (chats || []).find(chat => {
-                    const jids = (chat.remoteJid || '').split(',');
-                    return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
-                  });
-                  return !!chat && (
-                    chat.lastMessage?.key?.fromMe === false || 
-                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
-                  );
-                }
+                const capPhone = normalizePhone(c.telefono);
+                const chat = capPhone ? (chats || []).find(chat => {
+                  const jids = (chat.remoteJid || '').split(',');
+                  return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
+                }) : null;
+                const metadata = chat ? chatMetadata[chat.remoteJid] : null;
+                
+                const isWorked = hasLead || metadata?.worked || !!chat;
+                const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
+                const isConversation = metadata?.conversation;
+
+                if (f.id === 'worked') return isWorked;
+                if (f.id === 'not_worked') return !isWorked;
+                if (f.id === 'responded') return isResponded;
                 return true;
               }).length}
             </span>
@@ -234,19 +290,19 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                     return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
                   }) : null;
                   
-                  const hasResponse = !!chat && (
-                    chat.lastMessage?.key?.fromMe === false || 
-                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
-                  );
-
+                  const metadata = chat ? chatMetadata[chat.remoteJid] : null;
+                  const isWorked = hasLead || metadata?.worked || !!chat;
+                  const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
+                  const isConversation = metadata?.conversation;
+                  
                   return (
                     <CaptacionCard 
                       key={cap.id} 
                       cap={cap} 
                       historial={historial} 
                       onClick={setSelectedCaptacion} 
-                      hasLead={hasLead}
-                      hasResponse={hasResponse}
+                      hasLead={isWorked}
+                      hasResponse={isResponded}
                     />
                   );
                 })}
@@ -277,11 +333,11 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                     return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
                   }) : null;
                   
-                  const hasResponse = !!chat && (
-                    chat.lastMessage?.key?.fromMe === false || 
-                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
-                  );
-
+                  const metadata = chat ? chatMetadata[chat.remoteJid] : null;
+                  const isWorked = hasLead || metadata?.worked || !!chat;
+                  const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
+                  const isConversation = metadata?.conversation;
+                  
                   return (
                     <CaptacionListItem 
                       key={cap.id} 
@@ -289,8 +345,8 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                       historial={historial} 
                       index={index} 
                       onClick={setSelectedCaptacion} 
-                      hasLead={hasLead}
-                      hasResponse={hasResponse}
+                      hasLead={isWorked}
+                      hasResponse={isResponded}
                     />
                   );
                 })}

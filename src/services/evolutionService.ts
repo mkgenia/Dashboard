@@ -161,10 +161,68 @@ export const evolutionService = {
       }
     });
 
-    // Fusión avanzada por foto y nombre (mismo algoritmo que antes pero tipado)
-    // ... (Manteniendo la lógica de limpieza de duplicados por foto y nombre)
-    
-    return Array.from(groupedChats.values()).sort((a, b) => {
+    // 3. SEGUNDA PASADA: Fusión por Foto de Perfil (Muy fiable si la URL es idéntica)
+    const finalChats: EvolutionChat[] = Array.from(groupedChats.values());
+    const chatsByPhoto = new Map<string, EvolutionChat>();
+    const mergedList: EvolutionChat[] = [];
+
+    finalChats.forEach(chat => {
+      const photo = chat.profilePicUrl;
+      // Solo fusionar por foto si es una URL real y no algo genérico
+      if (photo && photo.includes('http') && !photo.includes('default')) {
+        if (chatsByPhoto.has(photo)) {
+          const existing = chatsByPhoto.get(photo)!;
+          // Combinar JIDs
+          const existingJids = existing.remoteJid.split(',');
+          const newJids = chat.remoteJid.split(',');
+          const combinedJids = [...new Set([...existingJids, ...newJids])].join(',');
+          
+          // Quedarse con el mensaje más reciente
+          const timeA = existing.lastMessage?.messageTimestamp || 0;
+          const timeB = chat.lastMessage?.messageTimestamp || 0;
+          
+          if (timeB > timeA) {
+            Object.assign(existing, chat);
+          }
+          existing.remoteJid = combinedJids;
+          existing.unreadCount = (existing.unreadCount || 0) + (chat.unreadCount || 0);
+        } else {
+          chatsByPhoto.set(photo, chat);
+          mergedList.push(chat);
+        }
+      } else {
+        mergedList.push(chat);
+      }
+    });
+
+    // 4. TERCERA PASADA: Fusión por Nombre (Menos fiable, solo si el nombre es específico)
+    const finalGrouped = new Map<string, EvolutionChat>();
+    mergedList.forEach(chat => {
+      const name = (chat.name || chat.pushName || '').trim();
+      const isGeneric = !name || name === 'Desconocido' || name.match(/^\d+$/);
+      
+      const key = (!isGeneric && name.length > 3) ? `name_${name.toLowerCase()}` : `id_${chat.remoteJid}`;
+      
+      if (finalGrouped.has(key)) {
+        const existing = finalGrouped.get(key)!;
+        const existingJids = existing.remoteJid.split(',');
+        const newJids = chat.remoteJid.split(',');
+        existing.remoteJid = [...new Set([...existingJids, ...newJids])].join(',');
+        
+        const timeA = existing.lastMessage?.messageTimestamp || 0;
+        const timeB = chat.lastMessage?.messageTimestamp || 0;
+        if (timeB > timeA) {
+          const allJids = existing.remoteJid;
+          Object.assign(existing, chat);
+          existing.remoteJid = allJids;
+        }
+        existing.unreadCount = (existing.unreadCount || 0) + (chat.unreadCount || 0);
+      } else {
+        finalGrouped.set(key, chat);
+      }
+    });
+
+    return Array.from(finalGrouped.values()).sort((a, b) => {
       const timeA = a.lastMessage?.messageTimestamp || 0;
       const timeB = b.lastMessage?.messageTimestamp || 0;
       return timeB - timeA;
