@@ -27,7 +27,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
   const [filterType, setFilterType] = useState<'all' | 'worked' | 'responded' | 'not_worked'>('all');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [chatMetadata, setChatMetadata] = useState<Record<string, { worked: boolean, responded: boolean, conversation: boolean, lastTs?: number }>>({});
+  const [chatMetadata, setChatMetadata] = useState<Record<string, { worked: boolean, responded: boolean, lastTs?: number }>>({});
 
   // Analizar secuencia de mensajes para determinar estados complejos (Optimizado con paralelo)
   useEffect(() => {
@@ -58,12 +58,10 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
             if (msgs && msgs.length > 0) {
               const isWorked = msgs[0].key?.fromMe === true;
               const isResponded = isWorked && msgs.length >= 2 && msgs[1].key?.fromMe === false;
-              const isConversation = msgs.length > 2;
 
               newMetadata[jid] = {
                 worked: isWorked,
                 responded: isResponded,
-                conversation: isConversation,
                 lastTs: chat.lastMessage?.messageTimestamp
               };
               hasUpdates = true;
@@ -122,10 +120,9 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
     const hasChat = !!chat;
     const metadata = chat ? chatMetadata[chat.remoteJid] : null;
 
-    // Lógica secuencial: Trabajada (1er msg), Respuesta (2do msg), Conversación (3+ msgs)
+    // Lógica secuencial: Trabajada (1er msg), Respuesta (2do msg)
     const isWorked = hasLead || metadata?.worked || hasChat;
     const isResponded = metadata?.responded || (hasChat && chat.lastMessage?.key?.fromMe === false);
-    const isConversation = metadata?.conversation;
 
     if (filterType === 'worked') return isWorked;
     if (filterType === 'not_worked') return !isWorked;
@@ -230,7 +227,6 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                 
                 const isWorked = hasLead || metadata?.worked || !!chat;
                 const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
-                const isConversation = metadata?.conversation;
 
                 if (f.id === 'worked') return isWorked;
                 if (f.id === 'not_worked') return !isWorked;
@@ -293,8 +289,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                   const metadata = chat ? chatMetadata[chat.remoteJid] : null;
                   const isWorked = hasLead || metadata?.worked || !!chat;
                   const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
-                  const isConversation = metadata?.conversation;
-                  
+                                
                   return (
                     <CaptacionCard 
                       key={cap.id} 
@@ -336,8 +331,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                   const metadata = chat ? chatMetadata[chat.remoteJid] : null;
                   const isWorked = hasLead || metadata?.worked || !!chat;
                   const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
-                  const isConversation = metadata?.conversation;
-                  
+                                
                   return (
                     <CaptacionListItem 
                       key={cap.id} 
