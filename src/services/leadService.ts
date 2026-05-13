@@ -4,24 +4,28 @@ import type { Lead, LeadStats } from '../types/leads';
 export const leadService = {
   getLeads: async (): Promise<Lead[]> => {
     try {
+      // Try with fecha_creacion first as it seems to be the primary one in current schema
       let { data, error } = await supabase
         .from('leads')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('fecha_creacion', { ascending: false });
 
       if (error) {
+        // Fallback to created_at
         const retry = await supabase
           .from('leads')
           .select('*')
-          .order('fecha_creacion', { ascending: false });
-        data = retry.data;
-        error = retry.error;
-      }
-
-      if (error) {
-        const retry = await supabase.from('leads').select('*');
-        data = retry.data;
-        error = retry.error;
+          .order('created_at', { ascending: false });
+        
+        if (!retry.error) {
+          data = retry.data;
+          error = null;
+        } else {
+          // Fallback to no order if both fail
+          const finalRetry = await supabase.from('leads').select('*');
+          data = finalRetry.data;
+          error = finalRetry.error;
+        }
       }
 
       if (error) {

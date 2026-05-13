@@ -67,12 +67,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({ leads: initialLeads = [] 
         .order('fecha_creacion', { ascending: false });
 
       if (leadsError) {
+        // Fallback to created_at
         const retry = await supabase
           .from('leads')
           .select('*')
           .order('created_at', { ascending: false });
-        leadsData = retry.data;
-        leadsError = retry.error;
+        
+        if (!retry.error) {
+          leadsData = retry.data;
+          leadsError = null;
+        } else {
+          // Fallback to no order
+          const finalRetry = await supabase.from('leads').select('*');
+          leadsData = finalRetry.data;
+          leadsError = finalRetry.error;
+        }
       }
 
       if (!leadsError && leadsData) {

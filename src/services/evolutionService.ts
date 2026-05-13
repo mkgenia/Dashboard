@@ -16,8 +16,14 @@ const headers = {
 
 export const evolutionService = {
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
+    if (!EVO_URL || !API_KEY || !INSTANCE) {
+      console.error('Evolution API Error: Missing environment variables', { EVO_URL, hasApiKey: !!API_KEY, INSTANCE });
+      return null;
+    }
+
     try {
-      const response = await fetch(`${EVO_URL}${endpoint}`, {
+      const url = `${EVO_URL}${endpoint}`;
+      const response = await fetch(url, {
         ...options,
         headers: {
           ...headers,
@@ -25,11 +31,32 @@ export const evolutionService = {
         }
       });
 
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+
       if (!response.ok) {
         if (response.status === 404) return null;
-        const errorBody = await response.json().catch(() => ({}));
-        const errorMessage = errorBody.message || errorBody.error || response.statusText;
+        
+        let errorMessage = response.statusText;
+        if (isJson) {
+          const errorBody = await response.json().catch(() => ({}));
+          errorMessage = errorBody.message || errorBody.error || response.statusText;
+        } else {
+          const text = await response.text().catch(() => '');
+          if (text.includes('<!DOCTYPE html>')) {
+            errorMessage = `Received HTML instead of JSON (likely a 404/500 page from proxy). URL: ${url}`;
+          } else {
+            errorMessage = text || response.statusText;
+          }
+        }
+        
         console.error(`Evolution API Error [${endpoint}]:`, `API Error (${response.status}): ${errorMessage}`);
+        return null;
+      }
+
+      if (!isJson) {
+        const text = await response.text();
+        console.error(`Evolution API Error [${endpoint}]: Expected JSON but received:`, text.slice(0, 100));
         return null;
       }
 
