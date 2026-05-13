@@ -86,7 +86,15 @@ const UserManagementView: React.FC = () => {
       setLoadingProfiles(true);
       const { data, error } = await supabase.from('perfiles').select('*').order('nombre', { ascending: true });
       if (error) throw error;
-      if (data) setProfiles(data as UserProfile[]);
+      
+      if (data) {
+        // Normalizamos los datos para asegurar que 'permisos' siempre sea un objeto válido
+        const normalizedProfiles = data.map(p => ({
+          ...p,
+          permisos: p.permisos || (p.rol === 'Admin' ? PERMISOS_ADMIN : PERMISOS_AGENTE_DEFAULT)
+        }));
+        setProfiles(normalizedProfiles as UserProfile[]);
+      }
     } catch (error) {
       console.error('Error fetching profiles:', error);
     } finally {

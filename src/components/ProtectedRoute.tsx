@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { ShieldOff } from 'lucide-react';
+import { ShieldOff, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import type { Permisos } from '../contexts/AuthContext';
@@ -60,7 +60,19 @@ const AccessDenied: React.FC = () => (
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly, requiredPermission }) => {
   const { user, isAdmin, hasPermission, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', height: '60vh', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <Loader2 size={32} />
+        </motion.div>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/" replace />;
 
   if (adminOnly && !isAdmin) return <AccessDenied />;
