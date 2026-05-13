@@ -2,11 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Captacion, HistorialCambio } from '../types/captaciones';
 import type { Lead } from '../types/leads';
+import { evolutionService } from '../services/evolutionService';
+import type { EvolutionChat } from '../types/evolution';
 
 export const useCaptaciones = () => {
    const [captaciones, setCaptaciones] = useState<Captacion[]>([]);
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
   const [existingLeads, setExistingLeads] = useState<Lead[]>([]);
+  const [chats, setChats] = useState<EvolutionChat[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLeads = useCallback(async () => {
@@ -17,6 +20,15 @@ export const useCaptaciones = () => {
       if (!error && data) setExistingLeads(data as Lead[]);
     } catch (err) {
       console.error('Error fetching existing leads:', err);
+    }
+  }, []);
+
+  const fetchChats = useCallback(async () => {
+    try {
+      const data = await evolutionService.getChats();
+      if (data) setChats(data);
+    } catch (err) {
+      console.error('Error fetching chats:', err);
     }
   }, []);
 
@@ -58,6 +70,7 @@ export const useCaptaciones = () => {
   useEffect(() => {
     fetchCaptaciones();
     fetchLeads();
+    fetchChats();
 
     const subscription = supabase
       .channel('captaciones-view-realtime')
@@ -81,7 +94,11 @@ export const useCaptaciones = () => {
     captaciones,
     historial,
     existingLeads,
+    chats,
     loading,
-    refresh: fetchCaptaciones
+    refresh: () => {
+      fetchCaptaciones();
+      fetchChats();
+    }
   };
 };

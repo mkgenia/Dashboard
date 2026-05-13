@@ -33,7 +33,7 @@ interface MessagesViewProps {
 }
 
 const MessagesView: React.FC<MessagesViewProps> = () => {
-  const { } = useApp();
+  const { activeChatId, setActiveChatId } = useApp();
   const [chats, setChats] = useState<EvolutionChat[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageDisplay[]>([]);
@@ -137,6 +137,37 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
     return () => clearInterval(interval);
   }, [waState, selectedChatId]);
 
+
+  const normalizePhone = (p: string | undefined | null) => {
+    if (!p) return '';
+    const clean = p.replace(/[^0-9]/g, '');
+    return clean.length >= 9 ? clean.slice(-9) : clean;
+  };
+
+  useEffect(() => {
+    if (activeChatId) {
+      // 1. Intentar encontrar el chat real en la lista cargada
+      const realChat = chats.find(c => {
+        const jids = (c.remoteJid || '').split(',');
+        const targetPhone = normalizePhone(activeChatId.split('@')[0]);
+        return jids.some(j => {
+          if (j === activeChatId) return true;
+          const chatPhone = normalizePhone(j.split('@')[0]);
+          return chatPhone === targetPhone;
+        });
+      });
+
+      if (realChat) {
+        setSelectedChatId(realChat.remoteJid);
+        setActiveChatId(null);
+      } else if (chats.length > 0) {
+        // Si ya hay chats cargados y no lo encontramos, usamos el ID directo como fallback
+        setSelectedChatId(activeChatId);
+        setActiveChatId(null);
+      }
+      // Si chats está vacío, esperamos a la siguiente carga
+    }
+  }, [activeChatId, chats]);
 
   useEffect(() => {
     if (selectedChatId) {

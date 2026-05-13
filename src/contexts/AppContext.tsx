@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 interface AppContextType {
   initialCaptacionId: number | null;
   setInitialCaptacionId: (id: number | null) => void;
+  activeChatId: string | null;
+  setActiveChatId: (id: string | null) => void;
   showNotification: (message: string, type?: 'success' | 'error') => void;
   notification: { message: string; type: 'success' | 'error' } | null;
 }
@@ -12,6 +14,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [initialCaptacionId, setInitialCaptacionId] = useState<number | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
@@ -23,6 +26,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       initialCaptacionId,
       setInitialCaptacionId,
+      activeChatId,
+      setActiveChatId,
       showNotification,
       notification
     }}>

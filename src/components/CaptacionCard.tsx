@@ -11,9 +11,11 @@ interface CaptacionCardProps {
   cap: Captacion;
   historial: HistorialCambio[];
   onClick: (cap: Captacion) => void;
+  hasLead?: boolean;
+  hasResponse?: boolean;
 }
 
-const CaptacionCard: React.FC<CaptacionCardProps> = ({ cap, historial, onClick }) => {
+const CaptacionCard: React.FC<CaptacionCardProps> = ({ cap, historial, onClick, hasLead, hasResponse }) => {
   const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=400';
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -38,6 +40,49 @@ const CaptacionCard: React.FC<CaptacionCardProps> = ({ cap, historial, onClick }
           onError={handleImgError} 
           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
         />
+        <div style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8
+        }}>
+          {hasLead && (
+            <div style={{
+              background: '#2563eb',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: 100,
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}>
+              Trabajada
+            </div>
+          )}
+          {hasResponse && (
+            <div style={{
+              background: '#10b981',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: 100,
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}>
+              Respuesta
+            </div>
+          )}
+        </div>
         <div style={{
           position: 'absolute',
           top: 16,

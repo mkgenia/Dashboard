@@ -19,10 +19,11 @@ interface CaptacionesViewProps {
 const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
   const { isAdmin } = useAuth();
   const { initialCaptacionId, setInitialCaptacionId } = useApp();
-  const { captaciones, historial, existingLeads, loading, refresh } = useCaptaciones();
+  const { captaciones, historial, existingLeads, chats, loading, refresh } = useCaptaciones();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCaptacion, setSelectedCaptacion] = useState<Captacion | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'worked' | 'responded' | 'not_worked'>('all');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -37,11 +38,45 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
     }
   }, [initialCaptacionId, captaciones, setInitialCaptacionId]);
 
-  const filteredCaptaciones = captaciones.filter(c =>
-    (c.calle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.barrio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.nombre || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizePhone = (p: string | undefined | null) => {
+    if (!p) return '';
+    const clean = p.replace(/[^0-9]/g, '');
+    // Para España (9 dígitos) y números internacionales, tomamos los últimos 9 como base de comparación robusta
+    return clean.length >= 9 ? clean.slice(-9) : clean;
+  };
+
+  const filteredCaptaciones = captaciones.filter(c => {
+    const matchesSearch = (c.calle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.barrio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
+    
+    if (filterType === 'worked') return hasLead;
+    if (filterType === 'not_worked') return !hasLead;
+    if (filterType === 'responded') {
+      const capPhone = normalizePhone(c.telefono);
+      if (!capPhone) return false;
+
+      const chat = (chats || []).find(chat => {
+        const jids = (chat.remoteJid || '').split(',');
+        return jids.some(j => {
+          const num = j.split('@')[0];
+          return normalizePhone(num) === capPhone;
+        });
+      });
+
+      // Es respuesta si: hay un chat Y (el último mensaje no es nuestro O hay mensajes sin leer)
+      return !!chat && (
+        chat.lastMessage?.key?.fromMe === false || 
+        (chat.unreadCount !== undefined && chat.unreadCount > 0)
+      );
+    }
+
+    return true;
+  });
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -91,6 +126,66 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
         showConfig={isAdmin}
       />
 
+      <div style={{ display: 'flex', gap: 12, marginBottom: 32, overflowX: 'auto', paddingBottom: 8 }}>
+        {[
+          { id: 'all', label: 'Todas', color: 'var(--text-primary)' },
+          { id: 'not_worked', label: 'Sin trabajar', color: '#64748b' },
+          { id: 'worked', label: 'Trabajadas', color: '#2563eb' },
+          { id: 'responded', label: 'Con respuesta', color: '#10b981' }
+        ].map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFilterType(f.id as any)}
+            style={{
+              padding: '12px 24px',
+              borderRadius: 100,
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              background: filterType === f.id ? 'black' : 'var(--card-bg)',
+              color: filterType === f.id ? 'white' : f.color,
+              border: filterType === f.id ? 'none' : '1px solid var(--border-color)',
+              transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: filterType === f.id ? '0 10px 20px rgba(0,0,0,0.1)' : 'none'
+            }}
+          >
+            <div style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: filterType === f.id ? 'white' : f.color
+            }} />
+            {f.label}
+            <span style={{
+              opacity: 0.5, fontSize: '0.75rem', marginLeft: 4,
+              background: filterType === f.id ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)',
+              padding: '2px 8px', borderRadius: 8
+            }}>
+              {captaciones.filter(c => {
+                const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
+                if (f.id === 'worked') return hasLead;
+                if (f.id === 'not_worked') return !hasLead;
+                if (f.id === 'responded') {
+                  const capPhone = normalizePhone(c.telefono);
+                  if (!capPhone) return false;
+                  const chat = (chats || []).find(chat => {
+                    const jids = (chat.remoteJid || '').split(',');
+                    return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
+                  });
+                  return !!chat && (
+                    chat.lastMessage?.key?.fromMe === false || 
+                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
+                  );
+                }
+                return true;
+              }).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <IdealistaConfigModal
         isOpen={isConfigModalOpen}
         onClose={() => setIsConfigModalOpen(false)}
@@ -126,20 +221,36 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
       ) : (
         !loading && (
           viewMode === 'grid' ? (
-            <div className="captaciones-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-              gap: 24
-            }}>
-              {filteredCaptaciones.map((cap) => (
-                <CaptacionCard 
-                  key={cap.id} 
-                  cap={cap} 
-                  historial={historial} 
-                  onClick={setSelectedCaptacion} 
-                />
-              ))}
-            </div>
+              <div className="captaciones-grid" style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gap: 24
+              }}>
+                {filteredCaptaciones.map((cap) => {
+                  const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(cap.id));
+                  const capPhone = normalizePhone(cap.telefono);
+                  const chat = capPhone ? (chats || []).find(chat => {
+                    const jids = (chat.remoteJid || '').split(',');
+                    return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
+                  }) : null;
+                  
+                  const hasResponse = !!chat && (
+                    chat.lastMessage?.key?.fromMe === false || 
+                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
+                  );
+
+                  return (
+                    <CaptacionCard 
+                      key={cap.id} 
+                      cap={cap} 
+                      historial={historial} 
+                      onClick={setSelectedCaptacion} 
+                      hasLead={hasLead}
+                      hasResponse={hasResponse}
+                    />
+                  );
+                })}
+              </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{
@@ -158,15 +269,31 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
               </div>
 
               <AnimatePresence>
-                {filteredCaptaciones.map((cap, index) => (
-                  <CaptacionListItem 
-                    key={cap.id} 
-                    cap={cap} 
-                    historial={historial} 
-                    index={index} 
-                    onClick={setSelectedCaptacion} 
-                  />
-                ))}
+                {filteredCaptaciones.map((cap, index) => {
+                  const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(cap.id));
+                  const capPhone = normalizePhone(cap.telefono);
+                  const chat = capPhone ? (chats || []).find(chat => {
+                    const jids = (chat.remoteJid || '').split(',');
+                    return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
+                  }) : null;
+                  
+                  const hasResponse = !!chat && (
+                    chat.lastMessage?.key?.fromMe === false || 
+                    (chat.unreadCount !== undefined && chat.unreadCount > 0)
+                  );
+
+                  return (
+                    <CaptacionListItem 
+                      key={cap.id} 
+                      cap={cap} 
+                      historial={historial} 
+                      index={index} 
+                      onClick={setSelectedCaptacion} 
+                      hasLead={hasLead}
+                      hasResponse={hasResponse}
+                    />
+                  );
+                })}
               </AnimatePresence>
             </div>
           )

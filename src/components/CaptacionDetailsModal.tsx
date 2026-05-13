@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Clock, ExternalLink, TrendingDown, TrendingUp, Sparkles,
-  User, Phone, Loader2, Send, Trash2, AlertTriangle, Building2
+  User, Phone, Loader2, Send, Trash2, AlertTriangle, Building2, MessageCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -39,7 +39,7 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
   onLeadCreated,
   onDelete
 }) => {
-  const { showNotification } = useApp();
+  const { showNotification, setActiveChatId } = useApp();
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -53,6 +53,10 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
   const [showPropertyForm, setShowPropertyForm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [leadCreatedLocal, setLeadCreatedLocal] = useState(false);
+
+  const linkedLead = existingLeads.find(
+    l => Number(l.captacion_id) === Number(selectedCaptacion.id)
+  );
 
   const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=400';
 
@@ -71,9 +75,6 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
 
     setFetchingMessages(true);
     try {
-      const linkedLead = existingLeads.find(
-        l => Number(l.captacion_id) === Number(selectedCaptacion.id)
-      );
       const identifier = jidOverride || linkedLead?.wa_jid || phoneToJid(selectedCaptacion.telefono);
 
       const msgs = await evolutionService.getMessages(identifier);
@@ -465,15 +466,28 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
                       <Sparkles size={16} /> IA
                     </button>
                   )}
-                  <button
-                    onClick={() => setShowContactConfirm(true)}
-                    disabled={!aiMessage && realMessages.length === 0}
-                    style={{ flex: 1.2, background: '#25D366', color: 'white', border: 'none', borderRadius: 100, fontWeight: 800, cursor: 'pointer', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                  >
-                    <Send size={16} /> WhatsApp
-                  </button>
                   {isLeadExisting ? (
-                    <button onClick={() => navigate('/leads')} style={{ flex: 1, background: 'white', color: '#8b5cf6', border: '1px solid #8b5cf6', borderRadius: 100, fontWeight: 800, padding: '12px' }}>Ver Lead</button>
+                    <button
+                      onClick={() => {
+                        const jid = linkedLead?.wa_jid?.split(',')[0] || phoneToJid(selectedCaptacion.telefono);
+                        setActiveChatId(jid);
+                        navigate('/messages');
+                      }}
+                      style={{ flex: 1, background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 100, fontWeight: 800, cursor: 'pointer', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    >
+                      <MessageCircle size={16} /> Ver Conversación
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowContactConfirm(true)}
+                      disabled={!aiMessage && realMessages.length === 0}
+                      style={{ flex: 1.2, background: '#25D366', color: 'white', border: 'none', borderRadius: 100, fontWeight: 800, cursor: 'pointer', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    >
+                      <Send size={16} /> WhatsApp
+                    </button>
+                  )}
+                  {isLeadExisting ? (
+                    <button onClick={() => navigate('/leads')} style={{ flex: 1, background: 'white', color: '#2563eb', border: '1px solid #2563eb', borderRadius: 100, fontWeight: 800, padding: '12px' }}>Ver Lead</button>
                   ) : (
                     <button onClick={() => handleCreateLead(selectedCaptacion)} style={{ flex: 1, background: 'white', color: '#2563eb', border: '1px solid #2563eb', borderRadius: 100, fontWeight: 800, padding: '12px' }}>+ Lead</button>
                   )}

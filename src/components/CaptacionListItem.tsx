@@ -10,9 +10,11 @@ interface CaptacionListItemProps {
   historial: HistorialCambio[];
   index: number;
   onClick: (cap: Captacion) => void;
+  hasLead?: boolean;
+  hasResponse?: boolean;
 }
 
-const CaptacionListItem: React.FC<CaptacionListItemProps> = ({ cap, historial, index, onClick }) => {
+const CaptacionListItem: React.FC<CaptacionListItemProps> = ({ cap, historial, index, onClick, hasLead, hasResponse }) => {
   const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=400';
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -66,8 +68,14 @@ const CaptacionListItem: React.FC<CaptacionListItemProps> = ({ cap, historial, i
           <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', letterSpacing: '-0.01em' }}>
             {cap.calle || 'Sin dirección'}
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-            {cap.metros}m² • {cap.habitaciones} habitaciones
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span>{cap.metros}m² • {cap.habitaciones} habitaciones</span>
+            {hasLead && (
+              <span style={{ background: '#2563eb15', color: '#2563eb', padding: '2px 8px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 800 }}>TRABAJADA</span>
+            )}
+            {hasResponse && (
+              <span style={{ background: '#10b98115', color: '#10b981', padding: '2px 8px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 800 }}>CON RESPUESTA</span>
+            )}
           </div>
         </div>
       </div>
