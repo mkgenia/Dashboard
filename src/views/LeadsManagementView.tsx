@@ -341,16 +341,16 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
                   borderRadius: 18,
                   fontSize: '0.9rem',
                   fontWeight: 800,
-                  cursor: 'pointer',
                   whiteSpace: 'nowrap',
-                  background: filterSource === s ? 'black' : 'var(--bg-color)',
-                  color: filterSource === s ? 'white' : 'var(--text-primary)',
-                  border: 'none',
+                  background: filterSource === s ? 'var(--text-primary)' : 'var(--bg-color)',
+                  color: filterSource === s ? 'var(--card-bg)' : 'var(--text-primary)',
+                  cursor: 'pointer',
                   transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   boxShadow: filterSource === s ? '0 10px 20px rgba(0,0,0,0.15)' : 'none',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8
+                  gap: 8,
+                  border: 'none'
                 }}
               >
                 {getSourceIcon(s)}
@@ -652,7 +652,7 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
                       {leadProperties.map(p => (
-                        <div key={p.id} style={{ background: 'white', borderRadius: 20, border: '1px solid var(--border-color)', overflow: 'hidden', cursor: 'pointer' }} onClick={() => { navigate('/properties'); setSelectedLead(null); }}>
+                        <div key={p.id} style={{ background: 'var(--card-bg)', borderRadius: 20, border: '1px solid var(--border-color)', overflow: 'hidden', cursor: 'pointer' }} onClick={() => { navigate('/properties'); setSelectedLead(null); }}>
                           <img src={p.imagenes?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400'} style={{ width: '100%', height: 100, objectFit: 'cover' }} />
                           <div style={{ padding: 12 }}>
                             <div style={{ fontWeight: 800, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.calle}</div>
@@ -731,9 +731,10 @@ const LeadsManagementView: React.FC<LeadsManagementViewProps> = ({ leads: initia
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
                       <textarea
                         style={{
-                          width: '100%', minHeight: 120, padding: 20, borderRadius: 24,
-                          border: '1px solid var(--border-color)', background: 'white',
-                          fontFamily: 'inherit', fontSize: '1rem', lineHeight: 1.5
+                          width: '100%', minHeight: 120,
+                          border: '1px solid var(--border-color)', background: 'var(--card-bg)',
+                          borderRadius: 20, padding: 20, marginBottom: 10,
+                          fontSize: '0.95rem', lineHeight: 1.5,
                         }}
                         placeholder="Notas sobre el lead..."
                         value={editingLead?.notas || ''}

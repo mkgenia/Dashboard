@@ -266,7 +266,7 @@ const UserManagementView: React.FC = () => {
             initial={{ opacity: 0, y: 20, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, scale: 0.9, x: '-50%' }}
-            style={{ position: 'fixed', bottom: 40, left: '50%', zIndex: 10000, background: notification.type === 'success' ? '#000' : '#ff4d4d', color: 'white', padding: '16px 32px', borderRadius: 100, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 700, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+            style={{ position: 'fixed', bottom: 40, left: '50%', zIndex: 10000, background: notification.type === 'success' ? 'var(--text-primary)' : '#ff4d4d', color: 'var(--card-bg)', padding: '16px 32px', borderRadius: 100, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 700, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
           >
             {notification.type === 'success' ? <Check size={18} color="var(--accent-yellow)" /> : <Shield size={18} />}
             {notification.message}
@@ -542,13 +542,13 @@ const PermissionItem = ({ label, icon, active, onClick }: { label: string; icon:
     onClick={onClick}
     style={{
       padding: '12px 14px', borderRadius: 12,
-      background: active ? 'white' : 'transparent',
+      background: active ? 'var(--card-bg)' : 'transparent',
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       cursor: 'pointer', transition: '0.2s',
       boxShadow: active ? '0 4px 10px rgba(0,0,0,0.05)' : 'none',
     }}
   >
-    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: active ? 'black' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: active ? 'var(--text-primary)' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ opacity: active ? 1 : 0.4 }}>{icon}</span>
       {label}
     </span>

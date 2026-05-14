@@ -7,6 +7,19 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 import type { Captacion, HistorialCambio } from '../types/captaciones';
 import type { Property } from '../types/properties';
 import {
@@ -57,6 +70,56 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
   const linkedLead = existingLeads.find(
     l => Number(l.captacion_id) === Number(selectedCaptacion.id)
   );
+
+  const [coords, setCoords] = useState<[number, number] | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCoords = async () => {
+      if (!selectedCaptacion) return;
+
+      let raw = null;
+      try {
+        raw = typeof selectedCaptacion.raw_data === 'string' ? JSON.parse(selectedCaptacion.raw_data) : selectedCaptacion.raw_data;
+      } catch (e) {}
+      
+      const lat = raw?.latitude || raw?.location?.latitude || raw?.lat;
+      const lng = raw?.longitude || raw?.location?.longitude || raw?.lng;
+      
+      if (lat && lng && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+        if (isMounted) setCoords([Number(lat), Number(lng)]);
+        return;
+      }
+
+      // Geocoding fallback via Nominatim
+      try {
+        const address = `${selectedCaptacion.calle}, ${selectedCaptacion.barrio}, España`;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+        const data = await res.json();
+        if (data && data.length > 0 && isMounted) {
+          setCoords([Number(data[0].lat), Number(data[0].lon)]);
+          return;
+        } 
+        
+        // Retry with just barrio if calle + barrio fails
+        if (selectedCaptacion.barrio) {
+          const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(selectedCaptacion.barrio + ", España")}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData && fallbackData.length > 0 && isMounted) {
+            setCoords([Number(fallbackData[0].lat), Number(fallbackData[0].lon)]);
+            return;
+          }
+        }
+        
+        if (isMounted) setCoords(null);
+      } catch (err) {
+        console.error('Error geocoding address:', err);
+        if (isMounted) setCoords(null);
+      }
+    };
+    fetchCoords();
+    return () => { isMounted = false; };
+  }, [selectedCaptacion]);
 
   const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=400';
 
@@ -298,6 +361,18 @@ const CaptacionDetailsModal: React.FC<CaptacionDetailsModalProps> = ({
                 <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)' }}>{selectedCaptacion.metros}m²</div>
               </div>
             </div>
+
+            {coords && (
+              <div style={{ marginBottom: 32, borderRadius: 24, overflow: 'hidden', border: '1px solid var(--border-color)', height: 250 }}>
+                <MapContainer center={coords} zoom={15} style={{ width: '100%', height: '100%' }} zoomControl={false}>
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                  />
+                  <Marker position={coords} />
+                </MapContainer>
+              </div>
+            )}
 
             <a
               href={selectedCaptacion.url}

@@ -132,8 +132,8 @@ const CustomMapControls = ({
         boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
         border: '1px solid rgba(0,0,0,0.05)'
       }}>
-        <button onClick={zoomIn} style={{ width: 44, height: 44, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', borderBottom: '1px solid rgba(0,0,0,0.05)' }}><Plus size={20} /></button>
-        <button onClick={zoomOut} style={{ width: 44, height: 44, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}><Minus size={20} /></button>
+        <button onClick={zoomIn} style={{ width: 44, height: 44, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}><Plus size={20} /></button>
+        <button onClick={zoomOut} style={{ width: 44, height: 44, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}><Minus size={20} /></button>
       </div>
 
       {/* Draw Controls */}
@@ -158,7 +158,7 @@ const CustomMapControls = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#000',
+            color: 'var(--text-primary)',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             transition: '0.2s'
           }}
@@ -387,9 +387,9 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
                 <div style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.8' }}>
                   <p style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 16, fontSize: '1.1rem' }}>Instrucciones:</p>
                   <ul style={{ padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>1</div> <span>Activa el modo dibujo con el icono <Pencil size={14} /></span></li>
-                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>2</div> <span>Haz clic en el mapa para añadir puntos.</span></li>
-                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>3</div> <span>Cierra el polígono en el punto inicial.</span></li>
+                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>1</div> <span>Activa el modo dibujo con el icono <Pencil size={14} /></span></li>
+                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>2</div> <span>Haz clic en el mapa para añadir puntos.</span></li>
+                    <li style={{ display: 'flex', gap: 12 }}><div style={{ width: 24, height: 24, borderRadius: 12, background: 'var(--accent-yellow)', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>3</div> <span>Cierra el polígono en el punto inicial.</span></li>
                   </ul>
                 </div>
               )}
@@ -439,7 +439,7 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
             </div>
 
             {/* Right Panel: Map */}
-            <div style={{ background: '#f8f9fa', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--card-gray)', position: 'relative', overflow: 'hidden' }}>
               <MapContainer
                 center={[39.469907, -0.376288]}
                 zoom={13}
@@ -473,7 +473,7 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
                   padding: 60,
                   letterSpacing: '-0.02em'
                 }}>
-                  <div style={{ background: 'white', padding: '32px 48px', borderRadius: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+                  <div style={{ background: 'var(--card-bg)', color: 'var(--text-primary)', padding: '32px 48px', borderRadius: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
                     Selecciona "Por Zona" para interactuar con el mapa
                   </div>
                 </div>

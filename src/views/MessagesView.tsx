@@ -9,7 +9,8 @@ import {
   Smile,
   Info,
   RefreshCw,
-  Loader2
+  Loader2,
+  LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -75,6 +76,13 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
     const interval = setInterval(checkWA, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleWaLogout = async () => {
+    if (confirm('¿Estás seguro de que quieres cerrar la sesión de WhatsApp?')) {
+      await evolutionService.logout();
+      setWaState('disconnected');
+    }
+  };
 
   const fetchChats = async (isSilent = false) => {
     if (waState !== 'open') return;
@@ -247,9 +255,20 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
         <div style={{ padding: '32px 24px 20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Mensajes</h2>
-            <button onClick={() => fetchChats()} disabled={loading} style={{ background: 'var(--bg-color)', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {waState === 'open' && (
+                <button 
+                  onClick={handleWaLogout} 
+                  style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', height: 40, padding: '0 12px', borderRadius: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: '0.8rem' }}
+                  title="Cerrar sesión de WhatsApp"
+                >
+                  <LogOut size={16} /> WA
+                </button>
+              )}
+              <button onClick={() => fetchChats()} disabled={loading} style={{ background: 'var(--bg-color)', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
           <div className="search-pill" style={{ width: '100%' }}>
             <Search size={20} color="var(--text-secondary)" />
