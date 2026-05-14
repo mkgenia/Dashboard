@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import WhatsAppConnection from '../components/WhatsAppConnection';
 import { evolutionService } from '../services/evolutionService';
+import { useCaptaciones } from '../hooks/useCaptaciones';
 import type { EvolutionChat, EvolutionMessage, ConnectionState } from '../types/evolution';
 import { useApp } from '../contexts/AppContext';
 
@@ -33,6 +34,7 @@ interface MessagesViewProps {
 }
 
 const MessagesView: React.FC<MessagesViewProps> = () => {
+  const { captaciones } = useCaptaciones();
   const { activeChatId, setActiveChatId } = useApp();
   const [chats, setChats] = useState<EvolutionChat[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -217,6 +219,21 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
 
   const selectedChat = chats.find(c => c.remoteJid === selectedChatId);
 
+  const getChatDisplayName = (chat: EvolutionChat) => {
+    const rawName = chat.name || chat.pushName;
+    const isLikelyPhone = rawName && /^[0-9+\-\s]+$/.test(rawName);
+    
+    if (!rawName || isLikelyPhone) {
+      const chatPhone = normalizePhone(chat.remoteJid.split('@')[0]);
+      const captacion = captaciones.find(c => normalizePhone(c.telefono) === chatPhone);
+      if (captacion && captacion.nombre) {
+        return captacion.nombre;
+      }
+    }
+    
+    return rawName || 'Desconocido';
+  };
+
   const formatMessageText = (text: string) => {
     if (!text) return '';
     return text
@@ -252,7 +269,7 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
             <div style={{ padding: 40, textAlign: 'center' }}><Loader2 className="animate-spin" style={{ margin: '0 auto' }} /></div>
           ) : (
             chats
-              .filter(c => (c.name || c.pushName || c.remoteJid).toLowerCase().includes(searchTerm.toLowerCase()))
+              .filter(c => getChatDisplayName(c).toLowerCase().includes(searchTerm.toLowerCase()) || c.remoteJid.toLowerCase().includes(searchTerm.toLowerCase()))
               .map(chat => (
                 <div
                   key={chat.remoteJid}
@@ -280,7 +297,7 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
                   />
                   <div style={{ flex: 1, overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{chat.name || chat.pushName || 'Desconocido'}</span>
+                      <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{getChatDisplayName(chat)}</span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
                         {chat.lastMessage?.messageTimestamp ? format(new Date(chat.lastMessage.messageTimestamp * 1000), 'HH:mm') : ''}
                       </span>
@@ -322,7 +339,7 @@ const MessagesView: React.FC<MessagesViewProps> = () => {
                   }}
                 />
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{selectedChat?.name || selectedChat?.pushName || 'Desconocido'}</div>
+                  <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{selectedChat ? getChatDisplayName(selectedChat) : 'Desconocido'}</div>
                   <div style={{ fontSize: '0.8rem', color: '#25D366', fontWeight: 700 }}>● En línea</div>
                 </div>
               </div>

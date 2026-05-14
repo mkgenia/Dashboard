@@ -33,7 +33,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
   useEffect(() => {
     const analyzeChats = async () => {
       if (chats.length === 0) return;
-      
+
       const newMetadata = { ...chatMetadata };
       let hasUpdates = false;
 
@@ -50,22 +50,20 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
       const batchSize = 6;
       for (let i = 0; i < chatsToAnalyze.length; i += batchSize) {
         const batch = chatsToAnalyze.slice(i, i + batchSize);
-        
+
         await Promise.all(batch.map(async (chat) => {
           const jid = chat.remoteJid;
           try {
             const msgs = await evolutionService.getMessages(jid);
-            if (msgs && msgs.length > 0) {
-              const isWorked = msgs[0].key?.fromMe === true;
-              const isResponded = isWorked && msgs.length >= 2 && msgs[1].key?.fromMe === false;
+            const firstMsgFromMe = msgs && msgs.length > 0 && msgs[0].key?.fromMe === true;
+            const hasLeadResponse = msgs && msgs.some((m, idx) => (idx > 0 && m.key?.fromMe === false) || (idx === 0 && m.key?.fromMe === false));
 
-              newMetadata[jid] = {
-                worked: isWorked,
-                responded: isResponded,
-                lastTs: chat.lastMessage?.messageTimestamp
-              };
-              hasUpdates = true;
-            }
+            newMetadata[jid] = {
+              worked: firstMsgFromMe,
+              responded: hasLeadResponse,
+              lastTs: chat.lastMessage?.messageTimestamp
+            };
+            hasUpdates = true;
           } catch (err) {
             console.error('Error analyzing chat:', jid, err);
           }
@@ -74,7 +72,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
         // Actualizar parcialmente para mostrar progreso en la UI
         if (hasUpdates) {
           setChatMetadata({ ...newMetadata });
-          hasUpdates = false; 
+          hasUpdates = false;
         }
       }
     };
@@ -117,12 +115,11 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
     }) : null;
 
     const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(c.id));
-    const hasChat = !!chat;
     const metadata = chat ? chatMetadata[chat.remoteJid] : null;
 
     // Lógica secuencial: Trabajada (1er msg), Respuesta (2do msg)
-    const isWorked = hasLead || metadata?.worked || hasChat;
-    const isResponded = metadata?.responded || (hasChat && chat.lastMessage?.key?.fromMe === false);
+    const isWorked = hasLead || metadata?.worked;
+    const isResponded = metadata?.responded;
 
     if (filterType === 'worked') return isWorked;
     if (filterType === 'not_worked') return !isWorked;
@@ -167,7 +164,7 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
         )}
       </AnimatePresence>
 
-      <CaptacionesHeader 
+      <CaptacionesHeader
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         viewMode={viewMode}
@@ -224,9 +221,9 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                   return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
                 }) : null;
                 const metadata = chat ? chatMetadata[chat.remoteJid] : null;
-                
-                const isWorked = hasLead || metadata?.worked || !!chat;
-                const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
+
+                const isWorked = hasLead || metadata?.worked;
+                const isResponded = metadata?.responded;
 
                 if (f.id === 'worked') return isWorked;
                 if (f.id === 'not_worked') return !isWorked;
@@ -273,35 +270,35 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
       ) : (
         !loading && (
           viewMode === 'grid' ? (
-              <div className="captaciones-grid" style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-                gap: 24
-              }}>
-                {filteredCaptaciones.map((cap) => {
-                  const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(cap.id));
-                  const capPhone = normalizePhone(cap.telefono);
-                  const chat = capPhone ? (chats || []).find(chat => {
-                    const jids = (chat.remoteJid || '').split(',');
-                    return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
-                  }) : null;
-                  
-                  const metadata = chat ? chatMetadata[chat.remoteJid] : null;
-                  const isWorked = hasLead || metadata?.worked || !!chat;
-                  const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
-                                
-                  return (
-                    <CaptacionCard 
-                      key={cap.id} 
-                      cap={cap} 
-                      historial={historial} 
-                      onClick={setSelectedCaptacion} 
-                      hasLead={isWorked}
-                      hasResponse={isResponded}
-                    />
-                  );
-                })}
-              </div>
+            <div className="captaciones-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gap: 24
+            }}>
+              {filteredCaptaciones.map((cap) => {
+                const hasLead = existingLeads.some(l => Number(l.captacion_id) === Number(cap.id));
+                const capPhone = normalizePhone(cap.telefono);
+                const chat = capPhone ? (chats || []).find(chat => {
+                  const jids = (chat.remoteJid || '').split(',');
+                  return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
+                }) : null;
+
+                const metadata = chat ? chatMetadata[chat.remoteJid] : null;
+                const isWorked = hasLead || metadata?.worked;
+                const isResponded = metadata?.responded;
+
+                return (
+                  <CaptacionCard
+                    key={cap.id}
+                    cap={cap}
+                    historial={historial}
+                    onClick={setSelectedCaptacion}
+                    hasLead={isWorked}
+                    hasResponse={isResponded}
+                  />
+                );
+              })}
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{
@@ -327,18 +324,18 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
                     const jids = (chat.remoteJid || '').split(',');
                     return jids.some(j => normalizePhone(j.split('@')[0]) === capPhone);
                   }) : null;
-                  
+
                   const metadata = chat ? chatMetadata[chat.remoteJid] : null;
-                  const isWorked = hasLead || metadata?.worked || !!chat;
-                  const isResponded = metadata?.responded || (!!chat && chat.lastMessage?.key?.fromMe === false);
-                                
+                  const isWorked = hasLead || metadata?.worked;
+                  const isResponded = metadata?.responded;
+
                   return (
-                    <CaptacionListItem 
-                      key={cap.id} 
-                      cap={cap} 
-                      historial={historial} 
-                      index={index} 
-                      onClick={setSelectedCaptacion} 
+                    <CaptacionListItem
+                      key={cap.id}
+                      cap={cap}
+                      historial={historial}
+                      index={index}
+                      onClick={setSelectedCaptacion}
                       hasLead={isWorked}
                       hasResponse={isResponded}
                     />
@@ -352,12 +349,12 @@ const CaptacionesView: React.FC<CaptacionesViewProps> = () => {
 
       <AnimatePresence>
         {selectedCaptacion && (
-          <CaptacionDetailsModal 
+          <CaptacionDetailsModal
             selectedCaptacion={selectedCaptacion}
             onClose={() => setSelectedCaptacion(null)}
             historial={historial}
             existingLeads={existingLeads}
-            onLeadCreated={() => {}} // Could show notification here
+            onLeadCreated={() => { }} // Could show notification here
             onDelete={() => showNotification('✨ Captación dada de baja correctamente')}
           />
         )}

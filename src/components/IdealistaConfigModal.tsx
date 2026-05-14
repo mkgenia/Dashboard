@@ -209,7 +209,7 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
       const encoded = encodePolyline(polygonCoords);
       url += `areas/venta-viviendas/?shape=((${encoded}))`;
     } else {
-      url += 'venta-viviendas/madrid/';
+      url += 'venta-viviendas/valencia/';
     }
 
     setGeneratedUrl(url);
@@ -441,7 +441,7 @@ const IdealistaConfigModal: React.FC<IdealistaConfigModalProps> = ({ isOpen, onC
             {/* Right Panel: Map */}
             <div style={{ background: '#f8f9fa', position: 'relative', overflow: 'hidden' }}>
               <MapContainer
-                center={[40.416775, -3.703790]}
+                center={[39.469907, -0.376288]}
                 zoom={13}
                 zoomControl={false}
                 style={{ height: '100%', width: '100%' }}
